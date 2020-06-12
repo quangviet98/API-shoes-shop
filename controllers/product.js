@@ -44,30 +44,64 @@ exports.get_one_product = (req, res) => {
         })
 }
 
-exports.get_products_status = (req, res)=>{
+exports.get_products_status = (req, res) => {
     const status = req.params.status;
-    Product.find({status})
-           .exec()
-           .then(result=>{
-               if(result.length>0){
-                   return res.status(200).json({
-                       count: result.length,
-                       data: result
-                   })
-               }
-               return res.status(404).json({
-                   message: 'product not found!'
-               })
-           })
-           .catch(err=>{
-               return res.status(500).json({ error: err });
-           })
+    Product.find({ status })
+        .exec()
+        .then(result => {
+            if (result.length > 0) {
+                return res.status(200).json({
+                    count: result.length,
+                    data: result
+                })
+            }
+            return res.status(404).json({
+                message: 'product not found!'
+            })
+        })
+        .catch(err => {
+            return res.status(500).json({ error: err });
+        })
+}
+
+exports.get_pagination = async (req, res) => {
+    const { currentPage, limitPerPage } = req.params;
+    //const lastIndex = currentPage * limitPerPage;
+    //const firstIndex = lastIndex - limitPerPage;
+
+    const skipItems = (currentPage - 1) * limitPerPage;
+    const limit = parseInt(limitPerPage);
+
+    const total = await Product.countDocuments();
+
+    Product.find()
+        .populate({ path: "typeID", select: "_id name" })
+        .skip(skipItems)
+        .limit(limit)
+        .exec()
+        .then(result => {
+            if (result.length == 0) {
+                return res.status(404).json({
+                    message: 'products not found!'
+                })
+            }
+
+            //const data = result.slice(firstIndex, lastIndex);
+            return res.status(200).json({
+                count: total,
+                data: result
+            })
+        })
+        .catch(err => {
+            return res.status(500).json({ error: err })
+        })
+
 }
 
 exports.post_insert = (req, res) => {
     //console.log(req.body);
     const { name, typeID, price, color, material, status, description } = req.body;
-
+    console.log(name, typeID, price, color, material, status, description);
     Product.findOne({ name })
         .exec()
         .then(result => {
@@ -77,7 +111,7 @@ exports.post_insert = (req, res) => {
                 })
             }
             let photos = req.files.map((val, i) => val.path);
-
+            console.log(photos);
             const product = new Product({
                 _id: mongoose.Types.ObjectId(),
                 name,
@@ -113,43 +147,43 @@ exports.post_insert = (req, res) => {
 exports.patch_update_product = (req, res) => {
     //const { name, typeID, price, color, material, status, description } = req.body;
     const id = req.params.id;
-    var newUpdate={};    
-    if(req.files.length>0){        
-        newUpdate.photos = req.files.map((val,i)=>val.path);
-    }    
-    for(let key in req.body){
-       if(req.body[key] !== undefined && req.body[key] !== ""){
-        newUpdate[key] = req.body[key];
-       }        
+    var newUpdate = {};
+    if (req.files.length > 0) {
+        newUpdate.photos = req.files.map((val, i) => val.path);
     }
-    Product.updateOne({_id:id},{ $set : newUpdate}, function(err, raw) {
-        if(err){
+    for (let key in req.body) {
+        if (req.body[key] !== undefined && req.body[key] !== "") {
+            newUpdate[key] = req.body[key];
+        }
+    }
+    Product.updateOne({ _id: id }, { $set: newUpdate }, function (err, raw) {
+        if (err) {
             return res.status(500).json({ error: err })
         }
         return res.status(200).json({
-            message : 'updated!'
+            message: 'updated!'
         })
         console.log(raw);
-      })
-    
+    })
+
 }
 
-exports.delete_one = (req, res)=>{
+exports.delete_one = (req, res) => {
     const id = req.params.id;
-    if(req.customerData.role ==="admin"){
+    if (req.customerData.role === "admin") {
         console.log('avsd');
-        Product.updateOne({_id: id}, {$set: {status: false}}, function(err,raw) {
-            if(err){
+        Product.updateOne({ _id: id }, { $set: { status: false } }, function (err, raw) {
+            if (err) {
                 return res.status(500).json({ error: err })
             }
             return res.status(200).json({
-                message : 'status is changed to false!',
+                message: 'status is changed to false!',
                 raw
             })
         })
-    }else{
+    } else {
         return res.status(401).json({
             message: 'user is not authorized!'
-        }) 
+        })
     }
 }

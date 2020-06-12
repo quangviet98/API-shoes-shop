@@ -1,4 +1,4 @@
-const mongoose= require('mongoose');
+const mongoose = require('mongoose');
 
 const billSchema = mongoose.Schema({
     _id: mongoose.Schema.Types.ObjectId,
@@ -13,19 +13,19 @@ const billSchema = mongoose.Schema({
             required: true,
             ref: 'Product'
         },
-        quantity : {type: Number, required: true},
+        quantity: { type: Number, required: true },
         price: Number
     }],
-    total: Number, 
+    total: Number,
     dateOrder: {
-        type: Date, 
+        type: Date,
         default: Date.now
     },
     status: {
         type: Boolean,
-        default: true
+        default: false
     },
     note: String
-},{versionKey: false})
+}, { versionKey: false })
 
 module.exports = mongoose.model('Bill', billSchema);

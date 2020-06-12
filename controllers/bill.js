@@ -5,7 +5,7 @@ exports.get_all_bill = (req, res) => {
     Bill.find()
         .populate([
             { path: 'customerID', select: '_id email name phone address' },
-            { path: 'products.productID', select: '_id name price status' }
+            { path: 'products.productID', select: '_id name price status color' }
         ])
         .exec()
         .then(result => {
@@ -23,12 +23,44 @@ exports.get_all_bill = (req, res) => {
             return res.status(500).json({ error: err });
         })
 }
+
+exports.get_bills_pagination = async (req, res) => {
+
+    const { currentPage, limitPerPage } = req.params;
+    const skipItems = (currentPage - 1) * limitPerPage;
+    const limit = parseInt(limitPerPage);
+
+    const total = await Bill.countDocuments();
+    Bill.find()
+        .populate([
+            { path: 'customerID', select: '_id email name phone address' },
+            { path: 'products.productID', select: '_id name price status color' }
+        ])
+        .skip(skipItems)
+        .limit(limit)
+        .sort({ dateOrder: -1 })
+        .exec()
+        .then(result => {
+            if (result.length > 0) {
+                return res.status(200).json({
+                    count: total,
+                    data: result
+                })
+            }
+            return res.status(404).json({
+                message: 'bills not found!'
+            })
+        })
+        .catch(err => {
+            return res.status(500).json({ error: err });
+        })
+}
 exports.get_one_bill = (req, res) => {
     const id = req.params.id;
     Bill.findById(id)
         .populate([
             { path: 'customerID', select: '_id email name phone address' },
-            { path: 'products.productID', select: '_id name price status' }
+            { path: 'products.productID', select: '_id name price status color' }
         ])
         .exec()
         .then(result => {
@@ -51,7 +83,7 @@ exports.get_bill_status = (req, res) => {
     Bill.find({ status })
         .populate([
             { path: 'customerID', select: '_id email name phone address' },
-            { path: 'products.productID', select: '_id name price status' }
+            { path: 'products.productID', select: '_id name price status color' }
         ])
         .exec()
         .then(result => {
@@ -93,7 +125,7 @@ exports.post_insert = (req, res) => {
 }
 exports.patch_update = (req, res) => {
     const id = req.params.id;
-    Bill.updateOne({ _id: id }, { $set: { status: false } }, function (err, raw) {
+    Bill.updateOne({ _id: id }, { $set: { status: true } }, function (err, raw) {
         if (err) {
             return res.status(500).json({ error: err });
         }
