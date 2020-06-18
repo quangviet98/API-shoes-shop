@@ -103,7 +103,9 @@ exports.get_bill_status = (req, res) => {
 }
 
 exports.post_insert = (req, res) => {
-    const { customerID, products, total, status, note } = req.body;
+    const { products, total, status, note } = req.body;
+    const customerID = req.customerData.id;
+    console.log(customerID);
     const bill = new Bill({
         _id: mongoose.Types.ObjectId(),
         customerID,

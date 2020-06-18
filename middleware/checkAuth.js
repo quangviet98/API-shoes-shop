@@ -9,7 +9,7 @@ module.exports = (req, res, next) => {
                 message: 'Auth failed!'
             })
             req.customerData = decoded; // data chuyển qua controller 
-            console.log("nexxt");
+            //console.log("nexxt");
 
             next();
         })
