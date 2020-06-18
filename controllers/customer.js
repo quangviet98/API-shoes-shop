@@ -4,6 +4,8 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 exports.get_all_customer = (req, res) => {
+    console.log(req.params.search);
+
     Customer.find()
         .exec()
         .then(result => {
@@ -28,6 +30,7 @@ exports.get_customer_pagination = async (req, res) => {
     const limit = parseInt(limitPerPage);
 
     const total = await Customer.countDocuments();
+
 
     Customer.find()
         .skip(skipItems)
