@@ -5,6 +5,7 @@ const morgan = require('morgan');
 const mongoose = require('mongoose');
 const cors = require('cors');
 require('dotenv').config();
+const cool = require('cool-ascii-faces');
 const customerRoutes = require('./api/routes/customer');
 const feedbackRoutes = require('./api/routes/feedback');
 const typeRoutes = require('./api/routes/type');
@@ -34,6 +35,7 @@ app.use('/api/feedbacks', feedbackRoutes);
 app.use('/api/types', typeRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/bills', billRoutes);
+app.get('/cool', (req, res) => res.send(cool()));
 
 app.use((req, res, next) => {
     const error = new Error('URL not found!');
