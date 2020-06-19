@@ -167,3 +167,19 @@ exports.post_signin = (req, res, next) => {
         })
 
 }
+
+exports.patch_reset = (req, res) => {
+    const { id } = req.params;
+
+    const hash = bcrypt.hashSync("123456", 10);
+    console.log(hash);
+    Customer.updateOne({ _id: id }, { $set: { password: hash } }, function (err, raw) {
+        if (err) {
+            return res.status(500).json({ err })
+        }
+        return res.status(200).json({
+            message: "updated!"
+        })
+    })
+
+}
