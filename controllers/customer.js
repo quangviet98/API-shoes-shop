@@ -193,16 +193,30 @@ exports.patch_update = (req, res) => {
             newUpdate[key] = req.body[key];
         }
     }
-    if (req.body.password) {
-        newUpdate.password = bcrypt.hashSync(req.body.password, 10)
-    }
-    //console.log(newUpdate);
-    Customer.updateOne({ _id: id }, { $set: newUpdate }, function (err, raw) {
-        if (err) {
-            return res.status(500).json({ err })
-        }
-        return res.status(200).json({
-            message: "updated!"
+
+
+    Customer.findById(id)
+        .then(customer => {
+            if (req.body.password) {
+                if (bcrypt.compareSync(req.body.password, customer.password) || req.body.password === customer.password) {
+                    delete newUpdate.password
+                } else {
+                    newUpdate.password = bcrypt.hashSync(req.body.password, 10)
+                }
+            }
+            //console.log(newUpdate);
+            Customer.updateOne({ _id: id }, { $set: newUpdate }, function (err, raw) {
+                if (err) {
+                    return res.status(500).json({ err })
+                }
+                return res.status(200).json({
+                    message: "updated!"
+                })
+            })
         })
-    })
+        .catch(err => {
+            return res.status(500).json({ err })
+        })
+
+
 }
