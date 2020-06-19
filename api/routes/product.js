@@ -6,7 +6,6 @@ const productController = require('../../controllers/product');
 
 
 router.get('/', productController.get_all_products);
-
 router.get('/currentPage=:currentPage&limitPerPage=:limitPerPage', productController.get_pagination);
 router.get('/:id', productController.get_one_product);
 router.get('/status/:status', productController.get_products_status);

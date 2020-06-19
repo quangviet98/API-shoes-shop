@@ -183,3 +183,26 @@ exports.patch_reset = (req, res) => {
     })
 
 }
+
+exports.patch_update = (req, res) => {
+    const { id } = req.params;
+
+    const newUpdate = {};
+    for (var key in req.body) {
+        if (req.body[key] !== undefined && req.body[key] !== "") {
+            newUpdate[key] = req.body[key];
+        }
+    }
+    if (req.body.password) {
+        newUpdate.password = bcrypt.hashSync(req.body.password, 10)
+    }
+    //console.log(newUpdate);
+    Customer.updateOne({ _id: id }, { $set: newUpdate }, function (err, raw) {
+        if (err) {
+            return res.status(500).json({ err })
+        }
+        return res.status(200).json({
+            message: "updated!"
+        })
+    })
+}
