@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const Product = require('../models/product');
 const fs = require('fs');
+const { response } = require('express');
 
 
 exports.get_all_products = (req, res) => {
@@ -25,6 +26,7 @@ exports.get_all_products = (req, res) => {
 }
 
 exports.get_one_product = (req, res) => {
+    console.log('blll');
     const id = req.params.id;
     Product.findById(id)
         .populate({ path: "typeID", select: "_id name" })
@@ -71,8 +73,8 @@ exports.get_pagination = async (req, res) => {
 
     const skipItems = (currentPage - 1) * limitPerPage;
     const limit = parseInt(limitPerPage);
-
     const total = await Product.countDocuments();
+
 
     Product.find()
         .populate({ path: "typeID", select: "_id name" })
@@ -97,6 +99,153 @@ exports.get_pagination = async (req, res) => {
         })
 
 }
+
+exports.get_products_type = (req, res) => {
+    const { typeID } = req.params;
+    Product.find({ typeID })
+        .populate({ path: "typeID", select: "_id name" })
+        .exec()
+        .then(result => {
+            return res.status(200).json({
+                count: result.length,
+                data: result
+            })
+        })
+        .catch(err => {
+            return res.status(404).json({
+                message: "not found"
+            })
+        })
+}
+
+exports.get_products_type_pagination = async (req, res) => {
+
+    const { currentPage, limitPerPage, typeID } = req.params;
+    //const lastIndex = currentPage * limitPerPage;
+    //const firstIndex = lastIndex - limitPerPage;
+
+    const skipItems = (currentPage - 1) * limitPerPage;
+    const limit = parseInt(limitPerPage);
+
+    const total = await Product.countDocuments({ typeID });
+
+    Product.find({ typeID })
+        .populate({ path: "typeID", select: "_id name" })
+        .skip(skipItems)
+        .limit(limit)
+        .exec()
+        .then(result => {
+            return res.status(200).json({
+                count: total,
+                data: result
+            })
+        })
+        .catch(err => {
+            return res.status(404).json({
+                message: "not found"
+            })
+        })
+}
+
+exports.get_products_type_search_pagination = async (req, res) => {
+    const { currentPage, limitPerPage, typeID, search } = req.params;
+    //const lastIndex = currentPage * limitPerPage;
+    //const firstIndex = lastIndex - limitPerPage;
+    const skipItems = (currentPage - 1) * limitPerPage;
+    const limit = parseInt(limitPerPage);
+    var regex = "";
+    if (search) {
+        regex = new RegExp(escapeRegex(search), 'gi');
+    }
+
+    const total = await Product.find({ typeID, name: regex }).countDocuments()
+
+
+    console.log(total);
+    Product.find({ typeID, name: regex })
+        .populate({ path: "typeID", select: "_id name" })
+        .skip(skipItems)
+        .limit(limit)
+        .exec()
+        .then(result => {
+            return res.status(200).json({
+                count: total,
+                data: result
+            })
+        })
+        .catch(err => {
+            return res.status(404).json({
+                message: "not found"
+            })
+        })
+}
+
+
+exports.get_search_pagination = async (req, res) => {
+    const { currentPage, limitPerPage, search } = req.params;
+    //const lastIndex = currentPage * limitPerPage;
+    //const firstIndex = lastIndex - limitPerPage;
+    const skipItems = (currentPage - 1) * limitPerPage;
+    const limit = parseInt(limitPerPage);
+    var regex = "";
+    if (search) {
+        regex = new RegExp(escapeRegex(search), 'gi');
+    }
+
+    const total = await Product.find({ name: regex }).countDocuments()
+
+    console.log('day la get_search_pagination');
+    console.log(total);
+    Product.find({ name: regex })
+        .populate({ path: "typeID", select: "_id name" })
+        .skip(skipItems)
+        .limit(limit)
+        .exec()
+        .then(result => {
+            return res.status(200).json({
+                count: total,
+                data: result
+            })
+        })
+        .catch(err => {
+            return res.status(404).json({
+                message: "not found"
+            })
+        })
+}
+
+
+
+
+
+function escapeRegex(text) {
+    return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+};
+
+exports.get_search = (req, res) => {
+    var regex = "";
+    if (req.params.search) {
+        console.log('helo');
+        regex = new RegExp(escapeRegex(req.params.search), 'gi');
+    }
+
+    Product.find({ name: regex })
+        .populate({ path: "typeID", select: "_id name" })
+        .exec()
+        .then(result => {
+            return res.status(200).json({
+                count: result.length,
+                data: result
+            })
+        })
+        .catch(err => {
+            return res.status(404).json({
+                message: "not found"
+            })
+        })
+}
+
+
 
 exports.post_insert = (req, res) => {
     //console.log(req.body);
